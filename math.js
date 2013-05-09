@@ -5,6 +5,7 @@
 		eval(uate)('math.js');
 	}
 
+	// TODO: Document these functions
 	// TODO: Conside using precalculated tables for faster operation:
 	// http://svn.apache.org/viewvc/commons/proper/math/trunk/src/main/java/org/apache/commons/math3/util/FastMath.java?view=markup
 
@@ -14,10 +15,35 @@
 		}
 	}
 
-	function round(number, decimal_places) {
-		return number.toFixed(decimal_places);
+	/**
+	 * A regexp which matches an integer or (optionally signed) floating point
+	 * number.
+	 *
+	 * The match will be placed in group 1.
+	 *
+	 * Will match +42, and -.42, and +0.4e-2, but not se7en or 0.4.2.
+	 *
+	 * @param {RegExp}
+	 */
+	var SIGNED_FLOATING_POINT = /([\-\+]?[0-9]*\.?[0-9]+([eE][\-\+]?[0-9]+)?)/g;
+
+	/**
+	 * Rounds a number to the given decimal places.
+	 *
+	 * @param {number} number
+	 * @param {number} digits
+	 * @return {number}
+	 */
+	function round(number, digits) {
+		return number.toFixed(digits);
 	}
 
+	/**
+	 * Convert an argument object into an array.
+	 *
+	 * @param {arguments} argv
+	 * @return {Array.<object>}
+	 */
 	function args(argv) {
 		return Array.prototype.slice.call(argv);
 	}
@@ -28,21 +54,50 @@
 	 * Converts degrees into radians.
 	 *
 	 * Reference: https://en.wikipedia.org/wiki/Radian
+	 *
+	 * @param {number} degrees
+	 * @return {number}
 	 */
 	function to_rad(degrees) {
 		return degrees * (Math.PI / 180);
 	}
 
+	/**
+	 * Converts radians to degrees.
+	 *
+	 * @param {number} radians
+	 * @return {number}
+	 */
 	function to_deg(radians) {
 		return radians * (180 / Math.PI);
 	}
 
+	/**
+	 * Right angle in radians
+	 *
+	 * @type {number}
+	 */
 	var RIGHT_ANGLE = to_rad(90);
+
+	/**
+	 * 180 degrees in radians
+	 *
+	 * @type {number}
+	 */
 	var HALF_ANGLE = to_rad(180);
+
+	/**
+	 * 360 degrees in radians
+	 *
+	 * @type {number}
+	 */
 	var FULL_ANGLE = to_rad(360);
 
 	/**
 	 * Normalizes an angle in a 2 PI radians (360 degrees) wide internal.
+	 *
+	 * @param {number}
+	 * return {number}
 	 */
 	function normalize_angle(radians) {
 		radians %= FULL_ANGLE;
@@ -59,6 +114,7 @@
 	 * positive for counter-clockwise angles (upper half-plane, y > 0), and
 	 * negative for clockwise angles (lower half-plane, y < 0).
 	 *
+	 * @param {array.<number>} vector
 	 * @return {number}
 	 */
 	function angular_direction(vector) {
@@ -68,8 +124,20 @@
 
 	/** `scalar */
 
+	/**
+	 * Check whether the given object is a scalar.
+	 *
+	 * @param {object} obj
+	 * @return {boolean} True if the object is not and array
+	 */
 	function is_scalar(obj) {
-		return !(typeof obj === 'object' && typeof obj.length === 'number');
+		return !(
+			typeof obj === 'object'
+			&&
+			typeof obj.length === 'number'
+			&&
+			typeof obj.propertyIsEnumerable('length')
+		);
 	}
 
 
@@ -85,7 +153,7 @@
 	}
 
 	function v_multiply_vector(a, b) {
-		return a;
+		throw 'Unimplemented method';
 	}
 
 	function v_multiply(vector, multiplier) {
@@ -101,6 +169,10 @@
 	 * corresponding entries.
 	 *
 	 * Reference: https://en.wikipedia.org/wiki/Dot_product
+	 *
+	 * @param {array.<number>} a
+	 * @param {array.<number>} b
+	 * @return {number}
 	 */
 	function v_dot_product(a, b) {
 		ASSERT(a.length === b.length, v_dot_product);
@@ -113,6 +185,12 @@
 		return sum;
 	}
 
+	/**
+	 * Calculate the magnitude of a vector.
+	 *
+	 * @param {array.<number>} vector
+	 * @return {number}
+	 */
 	function v_magnitude(vector) {
 		return Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
 	}
@@ -121,6 +199,10 @@
 	 * Rotates a vector clockwise by the given radian angle.
 	 *
 	 * Reference: https://en.wikipedia.org/wiki/Rotation_(mathematics)
+	 *
+	 * @param {array.<number>} vector
+	 * @param {number} angle
+	 * @return {number}
 	 */
 	function v_rotate(vector, angle) {
 		var cos = Math.cos(angle);
@@ -133,27 +215,55 @@
 
 	/**
 	 * Adds the given vectors and returns a new copy.
+	 *
+	 * @param {array.<number>} a
+	 * @param {array.<number>} b
+	 * @return {array.<number>}
 	 */
 	function v_add(a, b) {
 		return [a[0] + b[0], a[1] + b[1]];
 	}
 
+	/**
+	 * Subtracts the given vectors and returns a new copy.
+	 *
+	 * @param {array.<number>} a
+	 * @param {array.<number>} b
+	 * @return {array.<number>}
+	 */
 	function v_subtract(a, b) {
 		return [a[0] - b[0], a[1] - b[1]];
 	}
 
-	// https://en.wikipedia.org/wiki/Scalar_projection
-	// s = |a|cos@ = a·^b
-	// · dot product operation
-	// ^b unit vector in direction of b
-	// |a| is the length of a
-	// and @ is the angle between a and b
+	/**
+	 * Calculates the scalar projection of a vector in a given direction.
+	 *
+	 * Reference:
+	 * https://en.wikipedia.org/wiki/Scalar_projection
+	 * s = |a|cos@ = a·^b
+	 * · dot product operation
+	 * ^b unit vector in direction of b
+	 * |a| is the length of a
+	 * and @ is the angle between a and b
+	 *
+	 * @param {array.<number>} vector
+	 * @param {array.<number>} direction
+	 * @return {number}
+	 */
 	function v_scalar_projection(vector, direction) {
 		var vector_angle = angular_direction(vector);
 		var projection_angle = angular_direction(direction);
 		return v_magnitude(vector) * Math.cos(vector_angle - projection_angle);
 	}
 
+	/**
+	 * Reference:
+	 * https://en.wikipedia.org/wiki/Vector_projection
+	 *
+	 * @param {array.<number>} vector
+	 * @param {array.<number>} direction
+	 * @return {array.<number>}
+	 */
 	function v_project(vector, direction) {
 		return v_multiply(
 			direction,
@@ -255,6 +365,10 @@
 	 *
 	 * Reference:
 	 * https://en.wikipedia.org/wiki/Matrix_multiplication#Matrix_product_.28two_matrices.29
+	 *
+	 * @param {array.<number>} a
+	 * @param {array.<number>} b
+	 * return {array.<number>}
 	 */
 	function m_multiply_matrix(a, b) {
 		ASSERT(m_is_multiplication_compatible(a, b), m_multiply_matrix);
@@ -279,6 +393,10 @@
 	 * vector or a scalar multiplier.
 	 *
 	 * M × {M|V|S}
+	 *
+	 * @param {array.<number>} matrix
+	 * @param {number|array.<number>} multiplier
+	 * @return {array.<number>}
 	 */
 	function m_multiply(matrix, multiplier) {
 		return (
@@ -295,6 +413,10 @@
 	 *
 	 * References:
 	 * https://en.wikipedia.org/wiki/Matrix_rotation
+	 *
+	 * @param {array.<number>} matrix
+	 * @param {number} rotation
+	 * @return {array.<number>}
 	 */
 	function m_rotate(matrix, rotation) {
 		var cos = Math.cos(rotation);
@@ -352,6 +474,9 @@
 
 	global.MathUtil = {
 
+		// util
+		SIGNED_FLOATING_POINT: SIGNED_FLOATING_POINT,
+
 		// angle
 		FULL_ANGLE        : FULL_ANGLE,
 		HALF_ANGLE        : HALF_ANGLE,
@@ -386,4 +511,4 @@
 
 	};
 
-}(this));
+}(this, this.mandox));

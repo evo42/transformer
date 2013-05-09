@@ -1,0 +1,3 @@
+[submodule "vendor/mandox"]
+	path = vendor/mandox
+	url = git@github.com:petrosalema/mandox.git
